@@ -11,3 +11,9 @@ except:
 
 def get_people():
     return _people.find(projection = {'_id': False})
+
+def update_position(username, position):
+    _people.update_one(
+        {'username': username}, {'$set': {'position': position}}, True
+    )
+    return {'position': position, 'username': username}

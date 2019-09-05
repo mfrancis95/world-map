@@ -1,12 +1,13 @@
-from flask import flash, Flask, jsonify, render_template, request
+from flask import flash, Flask, jsonify, render_template, request, session
 from os import environ
 from flask_pyoidc.provider_configuration import *
 from flask_pyoidc.flask_pyoidc import OIDCAuthentication
-from .database import get_people
+from .database import get_people, update_position
+from .geocoding import geocode
 
 app = Flask(__name__)
 app.config.update(
-	SECRET_KEY = environ['SECRET_KEY'], SERVER_NAME = environ['SERVER_NAME']
+    SECRET_KEY = environ['SECRET_KEY'], SERVER_NAME = environ['SERVER_NAME']
 )
 app.jinja_env.lstrip_blocks = True
 app.jinja_env.trim_blocks = True
@@ -31,3 +32,11 @@ def index():
 @_auth.oidc_auth('default')
 def people():
     return jsonify(list(get_people()))
+
+@app.route('/position', methods = ['POST'])
+@_auth.oidc_auth('default')
+def position():
+    return jsonify(update_position(
+        session['userinfo']['preferred_username'],
+        geocode(str(request.get_data()))
+    ))
